@@ -21,6 +21,10 @@ contract NaiveReceiverLenderPool is ReentrancyGuard, IERC3156FlashLender {
     error UnsupportedCurrency();
     error CallbackFailed();
 
+
+    /**
+    @notice returns contract's balance if token = "ETH", else 0.
+     */
     function maxFlashLoan(address token) external view returns (uint256) {
         if (token == ETH) {
             return address(this).balance;
@@ -28,6 +32,9 @@ contract NaiveReceiverLenderPool is ReentrancyGuard, IERC3156FlashLender {
         return 0;
     }
 
+    /**
+    @notice returns 1 eth if token = "ETH", else reverts error.
+     */
     function flashFee(address token, uint256) external pure returns (uint256) {
         if (token != ETH)
             revert UnsupportedCurrency();
@@ -45,7 +52,8 @@ contract NaiveReceiverLenderPool is ReentrancyGuard, IERC3156FlashLender {
         
         uint256 balanceBefore = address(this).balance;
 
-        // Transfer ETH and handle control to receiver
+        // Transfer ETH and handle control to receiver 
+        // fails if isZero(calls())
         SafeTransferLib.safeTransferETH(address(receiver), amount);
         if(receiver.onFlashLoan(
             msg.sender,

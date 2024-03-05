@@ -20,8 +20,14 @@ contract FlashLoanReceiver is IERC3156FlashBorrower {
     constructor(address _pool) {
         pool = _pool;
     }
+    /**
+    @notice 
+    1) reverts if : 
+        pool is not the caller, 
+        currency is not ETH
 
-    function onFlashLoan(
+     */
+    function onFlashLoan( // 0x90ed06ae
         address,
         address token,
         uint256 amount,
@@ -29,6 +35,7 @@ contract FlashLoanReceiver is IERC3156FlashBorrower {
         bytes calldata
     ) external returns (bytes32) {
         assembly { // gas savings
+            // will execute if pool is not the caller.
             if iszero(eq(sload(pool.slot), caller())) {
                 mstore(0x00, 0x48f5c3ed)
                 revert(0x1c, 0x04)
@@ -45,10 +52,11 @@ contract FlashLoanReceiver is IERC3156FlashBorrower {
 
         _executeActionDuringFlashLoan();
 
-        // Return funds to pool
+        // call(), reverts if the execution fails
         SafeTransferLib.safeTransferETH(pool, amountToBeRepaid);
 
         return keccak256("ERC3156FlashBorrower.onFlashLoan");
+        // 0x439148f0bbc682ca079e46d6e2c2f0c1e3b820f1a291b069d8882abf8cf18dd9
     }
 
     // Internal function where the funds received would be used

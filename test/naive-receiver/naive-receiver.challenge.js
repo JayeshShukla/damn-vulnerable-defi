@@ -52,3 +52,9 @@ describe('[Challenge] Naive receiver', function () {
         ).to.be.equal(ETHER_IN_POOL + ETHER_IN_RECEIVER);
     });
 });
+
+
+// describe("trying to reenter", function () {
+//     const [deployer, user, player] = ethers.getSigners();
+//     console.log(deployer.addrress, user.addrress, player.add)
+// })
