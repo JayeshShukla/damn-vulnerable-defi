@@ -12,6 +12,7 @@ import "./FlashLoanReceiver.sol";
  * @author Damn Vulnerable DeFi (https://damnvulnerabledefi.xyz)
  */
 contract NaiveReceiverLenderPool is ReentrancyGuard, IERC3156FlashLender {
+    
 
     address public constant ETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     uint256 private constant FIXED_FEE = 1 ether; // not the cheapest flash loan
@@ -54,6 +55,8 @@ contract NaiveReceiverLenderPool is ReentrancyGuard, IERC3156FlashLender {
 
         // Transfer ETH and handle control to receiver 
         // fails if isZero(calls())
+        // The Solady SafeTransferLib is intriguing because it doesn't generate an error when you try to transfer money, 
+        // but it reverses the transaction if you attempt to transfer funds beyond a balance of zero. 
         SafeTransferLib.safeTransferETH(address(receiver), amount);
         if(receiver.onFlashLoan(
             msg.sender,
