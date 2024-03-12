@@ -37,7 +37,12 @@ describe('[Challenge] Naive receiver', function () {
     });
 
     it('Execution', async function () {
-        /** CODE YOUR SOLUTION HERE */
+       //0x663F3ad617193148711d28f5334eE4Ed07016602
+      let playerContract = await (
+        await ethers.getContractFactory("FlashLoanPlayer", player)
+      ).deploy(pool.address);
+     
+      await playerContract.connect(player).firstTimer();
     });
 
     after(async function () {
@@ -52,9 +57,3 @@ describe('[Challenge] Naive receiver', function () {
         ).to.be.equal(ETHER_IN_POOL + ETHER_IN_RECEIVER);
     });
 });
-
-
-// describe("trying to reenter", function () {
-//     const [deployer, user, player] = ethers.getSigners();
-//     console.log(deployer.addrress, user.addrress, player.add)
-// })
