@@ -20,19 +20,26 @@ contract TrusterLenderPool is ReentrancyGuard {
     constructor(DamnValuableToken _token) {
         token = _token;
     }
+    /**
+     * @dev balanceOf(borrower) -> amount;
+     *         balanceOf(msg.sender) -> prev - amount;
+     */
 
-    function flashLoan(uint256 amount, address borrower, address target, bytes calldata data)
-        external
-        nonReentrant
-        returns (bool)
-    {
+    function flashLoan(
+        uint256 amount,
+        address borrower,
+        address target,
+        bytes calldata data // function selector by borrower;
+    ) external nonReentrant returns (bool) {
         uint256 balanceBefore = token.balanceOf(address(this));
 
-        token.transfer(borrower, amount);
-        target.functionCall(data);
+        token.transfer(borrower, amount); // returns true
+        // what if target == token ? // hack
+        target.functionCall(data); // function selector by borrower;
 
-        if (token.balanceOf(address(this)) < balanceBefore)
+        if (token.balanceOf(address(this)) < balanceBefore) {
             revert RepayFailed();
+        }
 
         return true;
     }
