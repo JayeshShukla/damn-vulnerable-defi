@@ -13,13 +13,16 @@ interface IFlashLoanEtherReceiver {
  * @author Damn Vulnerable DeFi (https://damnvulnerabledefi.xyz)
  */
 contract SideEntranceLenderPool {
-    mapping(address => uint256) private balances;
+    mapping(address => uint256) public balances;
 
     error RepayFailed();
 
     event Deposit(address indexed who, uint256 amount);
     event Withdraw(address indexed who, uint256 amount);
 
+    /**
+     * @dev adds caller's ether to both : balance and balances
+     */
     function deposit() external payable {
         unchecked {
             balances[msg.sender] += msg.value;
@@ -27,9 +30,11 @@ contract SideEntranceLenderPool {
         emit Deposit(msg.sender, msg.value);
     }
 
+    /**
+     * @dev removes caller's "ENTIRE" ether from both : balance and balances
+     */
     function withdraw() external {
         uint256 amount = balances[msg.sender];
-        
         delete balances[msg.sender];
         emit Withdraw(msg.sender, amount);
 
@@ -41,7 +46,8 @@ contract SideEntranceLenderPool {
 
         IFlashLoanEtherReceiver(msg.sender).execute{value: amount}();
 
-        if (address(this).balance < balanceBefore)
+        if (address(this).balance < balanceBefore) {
             revert RepayFailed();
+        }
     }
 }
