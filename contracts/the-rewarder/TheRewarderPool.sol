@@ -3,8 +3,8 @@ pragma solidity ^0.8.0;
 
 import "solady/src/utils/FixedPointMathLib.sol";
 import "solady/src/utils/SafeTransferLib.sol";
-import { RewardToken } from "./RewardToken.sol";
-import { AccountingToken } from "./AccountingToken.sol";
+import {RewardToken} from "./RewardToken.sol";
+import {AccountingToken} from "./AccountingToken.sol";
 
 /**
  * @title TheRewarderPool
@@ -15,7 +15,7 @@ contract TheRewarderPool {
 
     // Minimum duration of each round of rewards in seconds
     uint256 private constant REWARDS_ROUND_MIN_DURATION = 5 days;
-    
+
     uint256 public constant REWARDS = 100 ether;
 
     // Token deposited into the pool by users
@@ -49,6 +49,8 @@ contract TheRewarderPool {
      *         Also distributes rewards if available.
      * @param amount amount of tokens to be deposited
      */
+
+    //ANCHOR - executes _beforeTokenTransfer of ERC20Snap, mints accountingToken & transfer to account.
     function deposit(uint256 amount) external {
         if (amount == 0) {
             revert InvalidDepositAmount();
@@ -57,28 +59,28 @@ contract TheRewarderPool {
         accountingToken.mint(msg.sender, amount);
         distributeRewards();
 
-        SafeTransferLib.safeTransferFrom(
-            liquidityToken,
-            msg.sender,
-            address(this),
-            amount
-        );
+        //ANCHOR - liquidityToken.transferFrom
+        SafeTransferLib.safeTransferFrom(liquidityToken, msg.sender, address(this), amount);
     }
 
+    //ANCHOR - burns accountingToken.
     function withdraw(uint256 amount) external {
         accountingToken.burn(msg.sender, amount);
         SafeTransferLib.safeTransfer(liquidityToken, msg.sender, amount);
     }
 
     function distributeRewards() public returns (uint256 rewards) {
+        // ANCHOR - will only snapshot if lasttimesnap + 5 days are over.
         if (isNewRewardsRound()) {
             _recordSnapshot();
         }
 
         uint256 totalDeposits = accountingToken.totalSupplyAt(lastSnapshotIdForRewards);
         uint256 amountDeposited = accountingToken.balanceOfAt(msg.sender, lastSnapshotIdForRewards);
-
+        // ANCHOR - caller & total deposit should be > 0
         if (amountDeposited > 0 && totalDeposits > 0) {
+            // NOTE - amountDeposited is x% of totalDeposits;
+            // x% * 100ETH = rewards
             rewards = amountDeposited.mulDiv(REWARDS, totalDeposits);
             if (rewards > 0 && !_hasRetrievedReward(msg.sender)) {
                 rewardToken.mint(msg.sender, rewards);
@@ -87,6 +89,9 @@ contract TheRewarderPool {
         }
     }
 
+    /**
+     * ANCHOR - gets : recentSnapshotID, recent block-Time & ++roundNumber
+     */
     function _recordSnapshot() private {
         lastSnapshotIdForRewards = uint128(accountingToken.snapshot());
         lastRecordedSnapshotTimestamp = uint64(block.timestamp);
@@ -95,6 +100,7 @@ contract TheRewarderPool {
         }
     }
 
+    // ANCHOR - this has to be false
     function _hasRetrievedReward(address account) private view returns (bool) {
         return (
             lastRewardTimestamps[account] >= lastRecordedSnapshotTimestamp

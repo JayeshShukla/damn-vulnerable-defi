@@ -23,6 +23,8 @@ contract AccountingToken is ERC20Snapshot, OwnableRoles {
         _grantRoles(msg.sender, MINTER_ROLE | SNAPSHOT_ROLE | BURNER_ROLE);
     }
 
+    // ANCHOR - this ERC20 _mint is about to call _beforeTokenTransfer
+    //          but will run _beforeTokenTransfer of ERC20Snapshot because AccountingToken is ERC20Snapshot.
     function mint(address to, uint256 amount) external onlyRoles(MINTER_ROLE) {
         _mint(to, amount);
     }
@@ -31,6 +33,7 @@ contract AccountingToken is ERC20Snapshot, OwnableRoles {
         _burn(from, amount);
     }
 
+    // ANCHOR - returns ++_currentSnapshotId
     function snapshot() external onlyRoles(SNAPSHOT_ROLE) returns (uint256) {
         return _snapshot();
     }
