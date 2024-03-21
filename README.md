@@ -124,6 +124,7 @@ interface IRewardPool {
 
 4. I found that when compared to URL it is unncessary to provide the distributeRewards() in interface as our deposit() function calls distributeRewards(); -> its an additonal thing which will increase the gas for.
 
+5. Understood some Intrsting concept about Safetransfer library.
 POSITIVE TAKE AWAY : The logic I applied is exactly same as given in the URL above. Need to make my contract safe too which I did not do..
 
 ## Hack & How to stop it
