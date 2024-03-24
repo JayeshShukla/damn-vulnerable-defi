@@ -23,19 +23,23 @@ contract TrustfulOracle is AccessControlEnumerable {
     event UpdatedPrice(address indexed source, string indexed symbol, uint256 oldPrice, uint256 newPrice);
 
     constructor(address[] memory sources, bool enableInitialization) {
-        if (sources.length < MIN_SOURCES)
+        if (sources.length < MIN_SOURCES) {
             revert NotEnoughSources();
+        }
         for (uint256 i = 0; i < sources.length;) {
             unchecked {
                 _setupRole(TRUSTED_SOURCE_ROLE, sources[i]);
                 ++i;
             }
         }
-        if (enableInitialization)
+        if (enableInitialization) {
             _setupRole(INITIALIZER_ROLE, msg.sender);
+        }
     }
 
     // A handy utility allowing the deployer to setup initial prices (only once)
+    // NOTE - can be only called by deployer of this contract
+    // FIXME - REPETION is not being checked.
     function setupInitialPrices(address[] calldata sources, string[] calldata symbols, uint256[] calldata prices)
         external
         onlyRole(INITIALIZER_ROLE)
@@ -51,6 +55,7 @@ contract TrustfulOracle is AccessControlEnumerable {
         renounceRole(INITIALIZER_ROLE, msg.sender);
     }
 
+    // NOTE can only be called by the address as source
     function postPrice(string calldata symbol, uint256 newPrice) external onlyRole(TRUSTED_SOURCE_ROLE) {
         _setPrice(msg.sender, symbol, newPrice);
     }
@@ -65,7 +70,9 @@ contract TrustfulOracle is AccessControlEnumerable {
         for (uint256 i = 0; i < numberOfSources;) {
             address source = getRoleMember(TRUSTED_SOURCE_ROLE, i);
             prices[i] = getPriceBySource(symbol, source);
-            unchecked { ++i; }
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -73,6 +80,7 @@ contract TrustfulOracle is AccessControlEnumerable {
         return _pricesBySource[source][symbol];
     }
 
+    // ANCHOR - Emits the oldPrice and sets new one in its place
     function _setPrice(address source, string memory symbol, uint256 newPrice) private {
         uint256 oldPrice = _pricesBySource[source][symbol];
         _pricesBySource[source][symbol] = newPrice;
